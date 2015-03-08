@@ -45,6 +45,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 import model.ModelBuilder;
+import gui.enhancement.*;
+
 
 /**
  * Provides the Graph View of a PSS-IF Model
@@ -52,41 +54,47 @@ import model.ModelBuilder;
  *
  */
 public class GraphView {
-  private JPanel             parent;
-  private GraphVisualization graph;
+  
+	private MainFrame mainFrame;
+	
+	private JPanel             parent;
+	private GraphVisualization graph;
 
-  private JPanel             nodeInformationPanel;
-  private JPanel             edgeInformationPanel;
-  private JPanel             nodeAttributePanel;
-  private JPanel             edgeAttributePanel;
-  private JPanel             informationPanel;
-  private JLabel             nodename;
-  private JLabel             nodetype;
-  private JLabel             edgetype;
-  private JLabel             edgeSource;
-  private JLabel             edgeDestination;
-  private JCheckBox          nodeDetails;
-  private JButton            collapseExpand;
-  private boolean            active;
-  private JTable             tableNodeAttributes;
-  private DefaultTableModel  nodeAttributesModel;
-  private JTable             tableEdgeAttributes;
-  private DefaultTableModel  edgeAttributesModel;
-  private ButtonGroup        group;
-  private JRadioButton       nodeSelection;
-  private JRadioButton       edgeSelection;
-  private ItemListener       nodeListener;
-  private ItemListener       edgeListener;
-  private JSpinner           depthSpinner;
-
-  private Dimension          screenSize;
-  private static int         betweenComps = 5;
-  private static Color       bgColor      = Color.LIGHT_GRAY;
+	private JPanel             nodeInformationPanel;
+	private JPanel             edgeInformationPanel;
+	private JPanel             nodeAttributePanel;
+	private JPanel             edgeAttributePanel;
+	private EnhancedToolBar             informationPanel;
+	private JLabel             nodename;
+	private JLabel             nodetype;
+	private JLabel             edgetype;
+	private JLabel             edgeSource;
+	private JLabel             edgeDestination;
+	private JCheckBox          nodeDetails;
+	private JButton            collapseExpand;
+	private boolean            active;
+	private JTable             tableNodeAttributes;
+	private DefaultTableModel  nodeAttributesModel;
+	private JTable             tableEdgeAttributes;
+	private DefaultTableModel  edgeAttributesModel;
+	private ButtonGroup        group;
+	private JRadioButton       nodeSelection;
+	private JRadioButton       edgeSelection;
+	private ItemListener       nodeListener;
+	private ItemListener       edgeListener;
+	private JSpinner           depthSpinner;
+	
+	private Dimension          screenSize;
+	private static int         betweenComps = 5;
+	private static Color       bgColor      = Color.LIGHT_GRAY;
 
   /**
    * Create a new instance of a GraphView
    */
-  public GraphView() {
+public GraphView(MainFrame mainFrame) {
+	
+	this.mainFrame = mainFrame;
+	
     active = false;
     
     screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -115,7 +123,11 @@ public class GraphView {
     parent.add(addGraphViz(), BorderLayout.CENTER);
 
     parent.add(addInformationPanel(), BorderLayout.SOUTH);
-
+    
+    //adding toolbars
+    ToolbarManager toolbarManager = new ToolbarManager();
+    parent.add(toolbarManager.createMouseToolbar(graph), BorderLayout.LINE_START);
+    parent.add(toolbarManager.createStandardToolBar(mainFrame.getFileCommands()), BorderLayout.PAGE_START);
     return parent;
   }
 
@@ -125,7 +137,6 @@ public class GraphView {
    */
   private JPanel addGraphViz() {
     JPanel graphpanel = new JPanel();
-
     VisualizationViewer<IMyNode, MyEdge> vv = graph.getVisualisationViewer();
 
     graphpanel.add(vv);
@@ -136,8 +147,9 @@ public class GraphView {
    * Get an Information Panel ( Additional information about the currently selected Edge or Node) as a Panel
    * @return a Panel with the Information Panel
    */
-  private JPanel addInformationPanel() {
-    informationPanel = new JPanel();
+  private EnhancedToolBar addInformationPanel() {
+    //informationPanel = new JPanel();
+	  informationPanel = new EnhancedToolBar(0);
 
     int x = (screenSize.width);
     int y = (int) (screenSize.height * 0.19);
@@ -511,7 +523,8 @@ public class GraphView {
    * Build a Table which displays the Node Attributes
    * @return  the Table which displays the Node Attributes
    */
-  private JTable createNodeAttributTable() {
+  @SuppressWarnings("serial")
+private JTable createNodeAttributTable() {
     nodeAttributesModel = new DefaultTableModel() {
 
       @Override
@@ -579,7 +592,8 @@ public class GraphView {
    * Build a Table which displays the Edge Attributes
    * @return  the Table which displays the Edge Attributes
    */
-  private JTable createEdgeAttributTable() {
+  @SuppressWarnings("serial")
+private JTable createEdgeAttributTable() {
     edgeAttributesModel = new DefaultTableModel() {
 
       @Override
