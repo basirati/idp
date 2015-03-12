@@ -7,6 +7,8 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.Toolkit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -74,7 +76,8 @@ public class MainFrame {
 		frame.pack();
 		frame.setLocationRelativeTo(null);
 		
-		ImageIcon icon = new ImageIcon("..\\images\\icon3.png");
+		
+		ImageIcon icon = new ImageIcon("../images/back.jpg");
 		frame.setIconImage(icon.getImage());
 		frame.setVisible(true);
 	}

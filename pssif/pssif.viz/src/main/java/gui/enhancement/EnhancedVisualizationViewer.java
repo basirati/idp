@@ -36,8 +36,19 @@ public class EnhancedVisualizationViewer extends VisualizationViewer<IMyNode, My
 
 	public void paintGrid(Graphics2D g2)
 	{
-		int SUBDIVISIONS_WIDTH = getSize().width / subdivision_size;
-        int SUBDIVISIONS_HEIGHT = getSize().height / subdivision_size;
+		int SUBDIVISIONS_WIDTH = 10;
+		int SUBDIVISIONS_HEIGHT = 10;
+		if (subdivision_size > 0 )
+		{
+			SUBDIVISIONS_WIDTH = getSize().width / subdivision_size;   
+        	SUBDIVISIONS_HEIGHT = getSize().height / subdivision_size;
+		}
+		else
+		{
+			SUBDIVISIONS_WIDTH = getSize().width / 10;   
+        	SUBDIVISIONS_HEIGHT = getSize().height / 10;
+		}
+        		
       
         for (int i = 1; i < SUBDIVISIONS_WIDTH; i++) {
         	g2.setColor(Color.LIGHT_GRAY);

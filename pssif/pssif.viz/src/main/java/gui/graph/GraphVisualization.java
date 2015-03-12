@@ -3,6 +3,7 @@ package gui.graph;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
@@ -38,6 +39,7 @@ import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
 import edu.uci.ics.jung.visualization.util.Animator;
 import graph.listener.ConfigWriterReader;
 import graph.listener.MyPopupGraphMousePlugin;
+import graph.listener.NodeIconConfigWriterReader;
 import graph.model.GraphBuilder;
 import graph.model.IMyNode;
 import graph.model.MyEdge;
@@ -79,6 +81,7 @@ public class GraphVisualization
 	private HashMap<MyNodeType, Icon> nodeIconMapping;
 	
 	private ConfigWriterReader configWriterReader;
+	private NodeIconConfigWriterReader nodeIconConfigWriterReader;
 
 
 	public GraphVisualization(Dimension d, boolean details)
@@ -89,7 +92,9 @@ public class GraphVisualization
 		this.gb = new GraphBuilder();
 		this.collapser = new MyCollapser();
 		configWriterReader = new ConfigWriterReader();
+		nodeIconConfigWriterReader = new NodeIconConfigWriterReader();
 		this.nodeColorMapping = configWriterReader.readColors();
+		this.nodeIconMapping = nodeIconConfigWriterReader.readIcons();
 
 		this.g =  this.gb.createGraph(this.detailedNodes);
 
@@ -185,16 +190,11 @@ public class GraphVisualization
 				{
 			public Icon transform(IMyNode n)
 			{
-				Icon myicon = new ImageIcon("..\\images\\vertex.png");
-				nodeIconMapping = new HashMap<MyNodeType, Icon>();
-				nodeIconMapping.put(ModelBuilder.getNodeTypes().getValue("Activity"), myicon);
-			//	nodeIconMapping.put(, myicon);
-				
-
-				if (nodeColorMapping != null && n instanceof MyNode) 
+				if (nodeIconMapping != null && n instanceof MyNode) 
 				{
 					MyNode node = (MyNode) n;
 					Icon icon = nodeIconMapping.get(node.getNodeType());
+					//System.out.println(icon);
 					return icon;
 				}
 				return null;
@@ -532,6 +532,11 @@ public class GraphVisualization
 	{
 		return this.configWriterReader.readColors();
 	}
+	
+	public HashMap<MyNodeType, Icon> getNodeIconMapping()
+	{
+		return this.nodeIconConfigWriterReader.readIcons();
+	}
 
 	/**
 	 * Create a new GraphView in the configuration file
@@ -540,6 +545,7 @@ public class GraphVisualization
 	public void createNewGraphView (GraphViewContainer newView)
 	{
 		this.configWriterReader.setGraphView(newView);
+		this.nodeIconConfigWriterReader.setGraphView(newView);
 	}
 
 	/**
@@ -550,6 +556,7 @@ public class GraphVisualization
 	{
 		return this.configWriterReader.readViews();
 	}
+	
 
 	/**
 	 * Delete a GraphView in the configuration file
@@ -606,5 +613,13 @@ public class GraphVisualization
 	{
 		vv.getPickedVertexState().clear();
 		vv.getPickedEdgeState().clear();
+	}
+
+	public void setNodeIconMapping(HashMap<MyNodeType, Icon> iconMapper) {
+		this.nodeIconMapping.putAll(iconMapper);
+		this.nodeIconConfigWriterReader.setIcons(nodeIconMapping);
+
+		updateGraph();
+		
 	}
 }

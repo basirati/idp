@@ -11,7 +11,7 @@ import gui.graph.CreateNewGraphViewPopup;
 import gui.graph.GraphVisualization;
 import gui.graph.HighlightNodePopup;
 import gui.graph.NodeColorPopup;
-import gui.graph.NodeShapePopup;
+import gui.graph.NodeIconPopup;
 import gui.metamodel.MetamodelPopUp;
 
 import java.awt.Dimension;
@@ -156,9 +156,6 @@ public class MenuManager {
 		// add additional functions to the File Menu
 		menuBar = addFileMenu(menuBar);
 
-		// add Mouse Operation Modes
-		menuBar.add(addMouseOperationModes());
-
 		// Which GraphLayout was chosen
 		menuBar.add(addChangeLayouts());
 
@@ -250,7 +247,7 @@ public class MenuManager {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				NodeShapePopup popup = new NodeShapePopup(graphView);
+				NodeIconPopup popup = new NodeIconPopup(graphView);
 
 				popup.showPopup();
 			}
@@ -305,30 +302,7 @@ public class MenuManager {
 	 * 
 	 * @return The updated MenuBar
 	 */
-	private JMenu addMouseOperationModes() {
-		JMenu modeMenu = graphView.getGraph().getMouseOperationModes(); // Obtain
-																		// mode
-																		// menu
-																		// from
-																		// the
-																		// mouse
-		modeMenu.setText("Mouse Mode");
-		modeMenu.setIcon(null);
-		modeMenu.setPreferredSize(new Dimension(80, 20));
-		modeMenu.getItem(1).setSelected(true);
-		// as soon as Transforming is activated no Edge or Node should be
-		// selected anymore
-		modeMenu.getItem(0).addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				graphView.getGraph().clearPickSupport();
-			}
-		});
-
-		return modeMenu;
-	}
-
+	
 	/**
 	 * Adds the Option to change the Graph Layout to the MenuBar
 	 * 

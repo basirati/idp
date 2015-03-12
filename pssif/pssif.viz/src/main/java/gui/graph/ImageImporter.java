@@ -1,35 +1,32 @@
 package gui.graph;
 
  
+import graph.model.MyNodeType;
 import gui.enhancement.ImagePanel;
 
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
  
-/*
- * FileChooserDemo.java uses these files:
- *   images/Open16.gif
- *   images/Save16.gif
- */
+
 @SuppressWarnings("serial")
 public class ImageImporter extends JPanel
                              implements ActionListener {
-    JButton openButton;
-    JFileChooser fc;
-    BufferedImage img;
-    File file ;
-    JLabel label;
-    ImagePanel imgPanel = new ImagePanel("");
+    private JButton openButton;
+    private JFileChooser fc;
+    private File file ;
+    private ImagePanel imgPanel = new ImagePanel("");
+    private NodeIconPopup nsp;
+    private MyNodeType currentNode;
     
-    public ImageImporter() {
+    public ImageImporter(NodeIconPopup nsp) {
         super(new BorderLayout());
  
+        this.nsp = nsp;
         //Create a file chooser
         fc = new JFileChooser();
  
@@ -59,10 +56,20 @@ public class ImageImporter extends JPanel
     }
  
     public void actionPerformed(ActionEvent e) {
- 
-        //Handle open button action.
+    	  //Handle open button action.
         if (e.getSource() == openButton) {
-        	// Get array of available formats
+        	handleShapeMapping();
+        }
+
+    }
+    
+    public void setCurrentNode(MyNodeType node){
+    	this.currentNode = node;
+    }
+ 
+    public void handleShapeMapping(){ 
+    	
+       	// Get array of available formats
         	String[] suffices = ImageIO.getReaderFileSuffixes();
 
         	// Add a file filter for each one
@@ -76,14 +83,31 @@ public class ImageImporter extends JPanel
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 file = fc.getSelectedFile();
                 this.remove(imgPanel);
-                imgPanel = new ImagePanel(file.getPath());
+                ImageIcon icon = new ImageIcon(file.getPath());
+                imgPanel = new ImagePanel(icon);
                 imgPanel.setSize(this.getSize());
-                this.add(imgPanel);
+                nsp.getIconMapper().put(currentNode, icon);
+                this.add(imgPanel,BorderLayout.CENTER);
                 this.repaint();
             } 
-        } 
+  
+        
     }
- 
+    
+    public void showImage(Icon icon){
+    	if (icon == null)
+    		return;
+    	this.remove(imgPanel);
+    	imgPanel = new ImagePanel(icon);
+        imgPanel.setSize(this.getSize());
+    	this.add(imgPanel);
+        this.repaint();
+    }
+    public void wipeImage(){
+    	this.remove(imgPanel);
+        this.repaint();
+    }
+    
     /** Returns an ImageIcon, or null if the path was invalid. */
     protected static ImageIcon createImageIcon(String path) {
         java.net.URL imgURL = ImageImporter.class.getResource(path);

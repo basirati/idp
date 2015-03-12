@@ -5,7 +5,6 @@ import graph.model.MyEdgeType;
 import graph.model.MyNodeType;
 import graph.operations.GraphViewContainer;
 
-import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -14,6 +13,7 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -38,14 +38,15 @@ import org.xml.sax.SAXException;
  * @author Luc
  *
  */
-public class ConfigWriterReader {
+public class NodeIconConfigWriterReader {
 	
 	
+	private static final Icon ICON_DEFAULT = new ImageIcon("../images/1.png");
 	private static File CONFIG_FILE;
 	private static String ROOT_CONFIG = "config";
-	private static String NODE_COLORS = "nodeColors";
+	private static String NODE_ICONS = "nodeIcons";
 	private static String NODE_TYPES = "nodeType";
-	private static String ATTR_COLOR = "color";
+	private static String ATTR_ICON = "icon";
 	
 	private static String GRAPH_VIEWS ="graphViews";
 	private static String GRAPH_VIEW ="graphView";
@@ -58,32 +59,32 @@ public class ConfigWriterReader {
 	/**
 	 * Creates a new ConfigWriterReader class
 	 */
-	public ConfigWriterReader()
+	public NodeIconConfigWriterReader()
 	{
-		CONFIG_FILE = new File("config.xml");
+		CONFIG_FILE = new File("iconConfig.xml");
 		
-		addStandartColors();
+		addStandardIcons();
 	}
 	
 	/**
-	 * Writes a MyNodeType color configuration to the XML file
-	 * @param colormapping : a Mapping from the appropriate MyNodeTypes to their color
+	 * Writes a MyNodeType icon configuration to the XML file
+	 * @param iconmapping : a Mapping from the appropriate MyNodeTypes to their icon
 	 */
-	public void setColors(HashMap<MyNodeType,Color> colormapping)
+	public void setIcons(HashMap<MyNodeType,Icon> iconmapping)
 	{
 		if (!CONFIG_FILE.exists())
-			writeNewConfig(colormapping);
+			writeNewConfig(iconmapping);
 		else
 		{
 			
-			if (!colorConfigExists())
+			if (!iconConfigExists())
 			{
-				// The file exists but the corresponding xml color configuration tags are not yet there
+				// The file exists but the corresponding xml icon configuration tags are not yet there
 				// so we have to add them
-				addBasicColorInfo();
+				addBasicIconInfo();
 			}
 			// call the update function
-			updateColors(colormapping);
+			updateIcons(iconmapping);
 		}
 	}
 	/**
@@ -99,10 +100,10 @@ public class ConfigWriterReader {
 	}
 	
 	/**
-	 * Write a new Color configuration from scratch
-	 * @param colormapping : HashMap<MyNodeType,Color>
+	 * Write a new Icon configuration from scratch
+	 * @param iconmapping : HashMap<MyNodeType,Icon>
 	 */
-	private void writeNewConfig(HashMap<MyNodeType,Color> colormapping)
+	private void writeNewConfig(HashMap<MyNodeType,Icon> iconmapping)
 	{
 		
 		 try {
@@ -116,22 +117,23 @@ public class ConfigWriterReader {
 		doc.appendChild(rootElement);
  
 		// nodecolors elements
-		Element nodecolors = doc.createElement(NODE_COLORS);
-		rootElement.appendChild(nodecolors);
+		Element nodeicons = doc.createElement(NODE_ICONS);
+		rootElement.appendChild(nodeicons);
  
-		Set<MyNodeType> nodetypes = colormapping.keySet();
+		Set<MyNodeType> nodetypes = iconmapping.keySet();
 		
-		// add every Nodetype and his color to the xml file
+		// add every Nodetype and his icon to the xml file
 		for (MyNodeType t :nodetypes)
 		{
 			Element node = doc.createElement(NODE_TYPES);
 			node.appendChild(doc.createTextNode(t.getName()));
 			
-			Attr attr = doc.createAttribute(ATTR_COLOR);
-			attr.setValue(String.valueOf(colormapping.get(t).getRGB()));
+			Attr attr = doc.createAttribute(ATTR_ICON);
+			ImageIcon temp = (ImageIcon) iconmapping.get(t);
+			attr.setValue(temp.getDescription());
 			node.setAttributeNode(attr);
 			
-			nodecolors.appendChild(node);
+			nodeicons.appendChild(node);
 			
 		}
 
@@ -153,10 +155,10 @@ public class ConfigWriterReader {
 	}
 	
 	/**
-	 * If there are already some MyNodeType and Color mappings in the xml file, we have to override certains with the new colors
-	 * @param newColorMapping : HashMap<MyNodeType,Color>
+	 * If there are already some MyNodeType and Icon mappings in the xml file, we have to override certains with the new Icons
+	 * @param newIconMapping : HashMap<MyNodeType,Icon>
 	 */
-	private void updateColors (HashMap<MyNodeType,Color> newColorMapping)
+	private void updateIcons (HashMap<MyNodeType,Icon> newIconMapping)
 	{
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -165,17 +167,17 @@ public class ConfigWriterReader {
 			
 			doc.getDocumentElement().normalize();
 	 
-			// Get the Nodecolors element by tag name directly
-			NodeList colormapping = doc.getElementsByTagName(NODE_TYPES);
+			// Get the NodeIcons element by tag name directly
+			NodeList iconmapping = doc.getElementsByTagName(NODE_TYPES);
 			
-			Node oldNodeColors = doc.getElementsByTagName(NODE_COLORS).item(0);
+			Node oldNodeIcons = doc.getElementsByTagName(NODE_ICONS).item(0);
 			
-			// Get all the values from the newColorMapping
+			// Get all the values from the newIconMapping
 			
-			Set<MyNodeType> newNodeTypes = newColorMapping.keySet();
+			Set<MyNodeType> newNodeTypes = newIconMapping.keySet();
 			
-			// Update already all the MyNodeTypes which already exist in the xml file with the new color
-			Set<MyNodeType> checkedNodeTypes = tryUpdate(colormapping, newColorMapping);
+			// Update already all the MyNodeTypes which already exist in the xml file with the new Icon
+			Set<MyNodeType> checkedNodeTypes = tryUpdate(iconmapping, newIconMapping);
 			
 			// remove all the MyNodeTypes which were already checked
 			newNodeTypes.removeAll(checkedNodeTypes);
@@ -186,11 +188,12 @@ public class ConfigWriterReader {
 				Element node = doc.createElement(NODE_TYPES);
 				node.appendChild(doc.createTextNode(currentType.getName()));
 				
-				Attr attr = doc.createAttribute(ATTR_COLOR);
-				attr.setValue(String.valueOf(newColorMapping.get(currentType).getRGB()));
+				Attr attr = doc.createAttribute(ATTR_ICON);
+				ImageIcon temp = (ImageIcon) newIconMapping.get(currentType);
+				attr.setValue(temp.getDescription());
 				node.setAttributeNode(attr);
 				
-				oldNodeColors.appendChild(node);
+				oldNodeIcons.appendChild(node);
 			}
 			
 	 
@@ -215,18 +218,18 @@ public class ConfigWriterReader {
 	}
 	
 	/**
-	 * Check if certain MyNodeType are already in the xml file. If yes update these MyNodeType with the new colors
-	 * @param colormapping : NodeList || all the XML MyNodeType Nodes with their color
-	 * @param newColorMapping : HashMap<MyNodeType,Color> || the new MyNodeType - Color mapping
+	 * Check if certain MyNodeType are already in the xml file. If yes update these MyNodeType with the new Icons
+	 * @param Iconmapping : NodeList || all the XML MyNodeType Nodes with their Icon
+	 * @param newIconMapping : HashMap<MyNodeType,Icon> || the new MyNodeType - Icon mapping
 	 * @return a Set<MyNodeType> with all the MyNodeType elements which were already updated
 	 */
-	private Set<MyNodeType> tryUpdate(NodeList colormapping, HashMap<MyNodeType,Color> newColorMapping)
+	private Set<MyNodeType> tryUpdate(NodeList iconmapping, HashMap<MyNodeType,Icon> newIconMapping)
 	{
 		Set<MyNodeType> checkedNodeTypes = new HashSet<MyNodeType>();
 		
-		for (int i = 0; i<colormapping.getLength();i++)
+		for (int i = 0; i<iconmapping.getLength();i++)
 		{
-			Node current = colormapping.item(i);
+			Node current = iconmapping.item(i);
 			
 			if (current.getNodeType() == Node.ELEMENT_NODE) 
 			{
@@ -236,15 +239,15 @@ public class ConfigWriterReader {
 				String nodeTypeValue = eElement.getChildNodes().item(0).getNodeValue();
 				//System.out.println("From XML " +nodeTypeValue);
 				
-				// get the color value from the xml file
-				//String colorValue = eElement.getAttribute(ATTR_COLOR);
+				// get the Icon value from the xml file
+				//String IconValue = eElement.getAttribute(ATTR_Icon);
 				
 				// Build a  MyNodeType from the String value from the xml
 				MyNodeType t = ModelBuilder.getNodeTypes().getValue(nodeTypeValue);
 
-				// get the new color
-				Color newColor = newColorMapping.get(t);
-			//	System.out.println("new Color "+newColor);
+				// get the new Icon
+				Icon newIcon = newIconMapping.get(t);
+			//	System.out.println("new Icon "+newIcon);
 				
 				//Color oldColor = new Color(Integer.valueOf(colorValue));
 				//System.out.println("From XML Color "+oldColor);
@@ -253,10 +256,11 @@ public class ConfigWriterReader {
 				checkedNodeTypes.add(t);
 				
 				// if we have a new color, update the xml file
-				if (newColor!=null)
+				if (newIcon!=null)
 				{
 					System.out.println("changed");
-					eElement.setAttribute(ATTR_COLOR, String.valueOf(newColor.getRGB()));
+					ImageIcon temp = (ImageIcon) newIcon;
+					eElement.setAttribute(ATTR_ICON, temp.getDescription());
 				}
 			//	System.out.println("------------------------");
 				
@@ -270,9 +274,9 @@ public class ConfigWriterReader {
 	 * Read all the MyNodeType - Color mappings from the XML
 	 * @return HashMap<MyNodeType, Color> with all the configurations. Might be empty if there is no configuration available
 	 */
-	public HashMap<MyNodeType, Color> readColors ()
+	public HashMap<MyNodeType, Icon> readIcons ()
 	{
-		HashMap<MyNodeType, Color> res = new HashMap<MyNodeType, Color>();
+		HashMap<MyNodeType, Icon> res = new HashMap<MyNodeType, Icon>();
 		
 		// check if the file exits
 		if (CONFIG_FILE.exists())
@@ -308,7 +312,7 @@ public class ConfigWriterReader {
 						MyNodeType current = ModelBuilder.getNodeTypes().getValue(nodeTypeValue);
 						
 						// Get the MyNodeType Color
-						Color c = new Color(Integer.valueOf(eElement.getAttribute(ATTR_COLOR)));
+						Icon c = new ImageIcon(eElement.getAttribute(ATTR_ICON));
 						
 						res.put(current, c);
 					}
@@ -627,10 +631,10 @@ public class ConfigWriterReader {
 	  }
 	
 	/**
-	 * Checks if there are already some MyNodeType - Color mappings in the XML available
+	 * Checks if there are already some MyNodeType - Icon mappings in the XML available
 	 * @return boolean || true if there are some, false if there are none
 	 */
-	private boolean colorConfigExists()
+	private boolean iconConfigExists()
 	{
 		boolean result = false;
 		
@@ -642,7 +646,7 @@ public class ConfigWriterReader {
 		 
 			doc.getDocumentElement().normalize();
 		 
-			NodeList nList = doc.getElementsByTagName(NODE_COLORS);
+			NodeList nList = doc.getElementsByTagName(NODE_ICONS);
 			
 			if (nList==null || nList.getLength()==0)
 				result =false;
@@ -658,9 +662,9 @@ public class ConfigWriterReader {
 	}
 	
 	/**
-	 * Adds the basic XML structure for the MyNodeType - Color mappings to the XML File
+	 * Adds the basic XML structure for the MyNodeType - Icon mappings to the XML File
 	 */
-	private void addBasicColorInfo()
+	private void addBasicIconInfo()
 	{
 		 try {
 			 
@@ -673,9 +677,9 @@ public class ConfigWriterReader {
 				// Get the root element
 				Element rootElement = (Element) doc.getFirstChild();
 		 
-				// nodecolors elements
-				Element nodecolors = doc.createElement(NODE_COLORS);
-				rootElement.appendChild(nodecolors);
+				// nodeicons elements
+				Element nodeicons = doc.createElement(NODE_ICONS);
+				rootElement.appendChild(nodeicons);
 				
 				// write the content into xml file
 				TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -758,47 +762,19 @@ public class ConfigWriterReader {
 		   }
 	}
 	
-	private void addStandartColors()
+	private void addStandardIcons()
 	{
-		HashMap<MyNodeType,Color> colormapping = new HashMap<MyNodeType, Color>();
-		
-		LinkedList<MyNodeType> nodetypes =ModelBuilder.getNodeTypes().getAllNodeTypes();
-		
-		LinkedList<Color> colorList = new LinkedList<Color>();
-		
-		for(int i=0; i<20;i++)
-		{
-			int first= (int) (Math.random()*255);
-			int second= (int) (Math.random()*255);
-			int third = (int) (Math.random()*255);
-			
-			String s = first+""+second+""+third;
-			
-			colorList.add(new Color(Integer.valueOf(s)));
-		}
-
-
-		int  counter = 0;
-		
-		for (MyNodeType currentType: nodetypes)
-		{
-			if (counter<colorList.size())
-			{
-				colormapping.put(currentType,colorList.get(counter));
-				counter++;
-			}
-		}
-		
+		HashMap<MyNodeType,Icon> iconmapping = new HashMap<MyNodeType, Icon>();
 		
 		if (!CONFIG_FILE.exists())
-			writeNewConfig(colormapping);
+			writeNewConfig(iconmapping);
 		else
 		{
-			if (!colorConfigExists())
+			if (!iconConfigExists())
 			{
-				addBasicColorInfo();
+				addBasicIconInfo();
 				
-				updateColors(colormapping);
+				updateIcons(iconmapping);
 			}
 		}
 	}
