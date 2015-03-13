@@ -75,6 +75,7 @@ public class GraphVisualization
 	private GraphBuilder gb;
 	private boolean detailedNodes;
 	private MyCollapser collapser;
+	private boolean vertexLabelVisibility;
 
 	public HashMap<MyNodeType, Shape> nodeShapeMapping;
 	private HashMap<MyNodeType,Color> nodeColorMapping;
@@ -97,6 +98,7 @@ public class GraphVisualization
 		this.nodeIconMapping = nodeIconConfigWriterReader.readIcons();
 
 		this.g =  this.gb.createGraph(this.detailedNodes);
+		this.vertexLabelVisibility = true;
 
 		this.layout = new FRLayout<IMyNode, MyEdge>(this.g);
 		if (d != null)
@@ -135,6 +137,12 @@ public class GraphVisualization
 		this.gm.add(new MyPopupGraphMousePlugin(this));
 	}
 
+
+	public boolean flipVertexLabelVisibility() {
+		this.vertexLabelVisibility = !this.vertexLabelVisibility;
+		return this.vertexLabelVisibility;
+	}
+
 	/**
 	 * Create all Transformes which help to visualize the Nodes
 	 */
@@ -169,7 +177,10 @@ public class GraphVisualization
 				{
 			public String transform(IMyNode node)
 			{
-				return "<html>" + node.getNodeInformations(node.isDetailedOutput());
+				if (vertexLabelVisibility)
+					return "<html>" + node.getNodeInformations(node.isDetailedOutput());
+				else 
+					return "<html>"+node.getName();
 			}
 				};
 

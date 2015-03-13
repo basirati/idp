@@ -43,6 +43,16 @@ public class ToolbarManager {
 			ecv.repaint();
 		} }, "Zoom Out", true);
 		
+		//Hide/Show Node Details 
+		ebt.addButton("Hide/Show", new ActionListener(){ @Override
+			public void actionPerformed(ActionEvent e) {
+			EnhancedVisualizationViewer ecv = (EnhancedVisualizationViewer) graph.getVisualisationViewer();
+			graph.flipVertexLabelVisibility();
+			graph.updateGraph();
+			ecv.repaint();
+					} }, "Hide Node Details", false);
+	
+		
 		return ebt;
 	}
 	
