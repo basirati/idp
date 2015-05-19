@@ -8,12 +8,14 @@ import graph.model.MyEdge;
 import graph.model.MyEdgeType;
 import graph.model.MyNode;
 import graph.model.MyNodeType;
+import graph.operations.MasterFilter;
 import gui.graph.GraphVisualization;
+import gui.toolbars.NodeHierarchyContainer;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Toolkit;
@@ -34,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
@@ -56,15 +59,20 @@ import gui.enhancement.*;
 public class GraphView {
   
 	private MainFrame mainFrame;
+	private MasterFilter masterFilter;
 	
 	private JPanel             parent;
 	private GraphVisualization graph;
 
+	private JSplitPane 		   spliter;
 	private JPanel             nodeInformationPanel;
 	private JPanel             edgeInformationPanel;
 	private JPanel             nodeAttributePanel;
 	private JPanel             edgeAttributePanel;
-	private EnhancedToolBar             informationPanel;
+	private JPanel             informationPanel;
+	private JPanel			   showPanel;
+	private JPanel 			   graphpanel;
+	private JScrollPane		   hierachypane;
 	private JLabel             nodename;
 	private JLabel             nodetype;
 	private JLabel             edgetype;
@@ -83,10 +91,10 @@ public class GraphView {
 	private ItemListener       nodeListener;
 	private ItemListener       edgeListener;
 	private JSpinner           depthSpinner;
-	
+
 	private Dimension          screenSize;
 	private static int         betweenComps = 5;
-	private static Color       bgColor      = Color.LIGHT_GRAY;
+	private static Color       bgColor      = Color.WHITE;
 
   /**
    * Create a new instance of a GraphView
@@ -110,6 +118,9 @@ public GraphView(MainFrame mainFrame) {
     }
 
     addNodeChangeListener();
+    
+    masterFilter = new MasterFilter(this);
+    
   }
   
   /**
@@ -119,15 +130,24 @@ public GraphView(MainFrame mainFrame) {
   public JPanel getGraphPanel() {
     parent = new JPanel();
     parent.setLayout(new BorderLayout());
+	spliter = new JSplitPane(JSplitPane.VERTICAL_SPLIT ,addGraphViz(), addInformationPanel());
+	spliter.setOneTouchExpandable(true);
+	spliter.setDividerLocation(520);
+	parent.add(spliter, BorderLayout.CENTER);
 
-    parent.add(addGraphViz(), BorderLayout.CENTER);
-
-    parent.add(addInformationPanel(), BorderLayout.SOUTH);
-    
-    //adding toolbars
+	final NodeHierarchyContainer nhcp = new NodeHierarchyContainer();
+    hierachypane = nhcp.createNodeHierarchyTree(masterFilter);
+    parent.add(hierachypane, BorderLayout.EAST);
+	
     ToolbarManager toolbarManager = new ToolbarManager();
     parent.add(toolbarManager.createMouseToolbar(graph), BorderLayout.LINE_START);
-    parent.add(toolbarManager.createStandardToolBar(mainFrame.getFileCommands()), BorderLayout.PAGE_START);
+    EnhancedToolBar jt = toolbarManager.createStandardToolBar(mainFrame.getFileCommands());
+   
+    parent.add(jt, BorderLayout.PAGE_START);
+    
+    
+    
+    
     return parent;
   }
 
@@ -136,10 +156,25 @@ public GraphView(MainFrame mainFrame) {
    * @return a Panel with the Graph Visualization
    */
   private JPanel addGraphViz() {
-    JPanel graphpanel = new JPanel();
+    graphpanel = new JPanel();
     VisualizationViewer<IMyNode, MyEdge> vv = graph.getVisualisationViewer();
 
     graphpanel.add(vv);
+    showPanel = new JPanel();
+    JButton showb = new JButton("Show Information Panel");
+    showb.addActionListener(new ActionListener() {
+		
+		public void actionPerformed(ActionEvent e) {
+			informationPanel.setVisible(true);
+			showPanel.setVisible(false);
+			spliter.setDividerLocation(0.75);
+			//spliter.revalidate();
+			
+		}
+	});
+    showPanel.add(showb);
+    showPanel.setVisible(false);
+    graphpanel.add(showPanel, BorderLayout.SOUTH);
     return graphpanel;
   }
   
@@ -147,9 +182,10 @@ public GraphView(MainFrame mainFrame) {
    * Get an Information Panel ( Additional information about the currently selected Edge or Node) as a Panel
    * @return a Panel with the Information Panel
    */
-  private EnhancedToolBar addInformationPanel() {
-    //informationPanel = new JPanel();
-	  informationPanel = new EnhancedToolBar(0);
+  private JPanel addInformationPanel() {
+    informationPanel = new JPanel();
+
+	//informationPanel = new EnhancedToolBar(0);
 
     int x = (screenSize.width);
     int y = (int) (screenSize.height * 0.19);
@@ -173,7 +209,7 @@ public GraphView(MainFrame mainFrame) {
     // Basic information
     nodeInformationPanel = addNodeInformationPanel();
     edgeInformationPanel = addEdgeInformationPanel();
-    
+
     // as default add the Node Information Panel
     informationPanel.add(nodeInformationPanel, BorderLayout.WEST);
     nodeSelection.setSelected(true);
@@ -195,7 +231,8 @@ public GraphView(MainFrame mainFrame) {
     nodeInfos.setBackground(bgColor);
 
     c.gridx = 0;
-    JLabel lblNodeName = new JLabel("Node Name");
+    JLabel lblNodeName = new JLabel("Node Name:");
+    lblNodeName.setFont(new Font("Serif", Font.PLAIN, 12));
     ypos++;
     c.gridy = ypos;
     nodeInfos.add(lblNodeName, c);
@@ -206,10 +243,11 @@ public GraphView(MainFrame mainFrame) {
     nodeInfos.add(nodename, c);
 
     ypos++;
-    c.gridy = ypos;
-    nodeInfos.add(Box.createVerticalStrut(betweenComps), c);
+    //c.gridy = ypos;
+    //nodeInfos.add(Box.createVerticalStrut(betweenComps), c);
 
-    JLabel lblNodeType = new JLabel("Node Type");
+    JLabel lblNodeType = new JLabel("Node Type:");
+    lblNodeType.setFont(new Font("Serif", Font.PLAIN, 12));
     ypos++;
     c.gridy = ypos;
     nodeInfos.add(lblNodeType, c);
@@ -240,7 +278,8 @@ public GraphView(MainFrame mainFrame) {
 
     c.gridx = 0;
 
-    JLabel lblEdgeType = new JLabel("Edge Type");
+    JLabel lblEdgeType = new JLabel("Edge Type:");
+    lblEdgeType.setFont(new Font("Serif", Font.PLAIN, 12));
     ypos++;
     c.gridy = ypos;
     edgeInfos.add(lblEdgeType, c);
@@ -250,10 +289,11 @@ public GraphView(MainFrame mainFrame) {
     edgeInfos.add(edgetype, c);
 
     ypos++;
-    c.gridy = ypos;
-    edgeInfos.add(Box.createVerticalStrut(betweenComps), c);
+    //c.gridy = ypos;
+    //edgeInfos.add(Box.createVerticalStrut(betweenComps), c);
 
-    JLabel lblsource = new JLabel("Source");
+    JLabel lblsource = new JLabel("Source:");
+    lblsource.setFont(new Font("Serif", Font.PLAIN, 12));
     ypos++;
     c.gridy = ypos;
     edgeInfos.add(lblsource, c);
@@ -263,10 +303,11 @@ public GraphView(MainFrame mainFrame) {
     edgeInfos.add(edgeSource, c);
 
     ypos++;
-    c.gridy = ypos;
-    edgeInfos.add(Box.createVerticalStrut(betweenComps), c);
+    //c.gridy = ypos;
+    //edgeInfos.add(Box.createVerticalStrut(betweenComps), c);
 
-    JLabel lbldestination = new JLabel("Destination");
+    JLabel lbldestination = new JLabel("Destination:");
+    lbldestination.setFont(new Font("Serif", Font.PLAIN, 12));
     ypos++;
     c.gridy = ypos;
     edgeInfos.add(lbldestination, c);
@@ -352,7 +393,8 @@ public GraphView(MainFrame mainFrame) {
     basicOperations.setLayout(new GridBagLayout());
     basicOperations.setBackground(bgColor);
 
-    JLabel pickMode = new JLabel("Pick Mode");
+    JLabel pickMode = new JLabel("Pick Mode: ");
+    pickMode.setFont( new Font("Serif", Font.ITALIC, 12));
 
     edgeSelection = new JRadioButton("Edge");
     edgeSelection.setBackground(bgColor);
@@ -376,9 +418,6 @@ public GraphView(MainFrame mainFrame) {
           parent.validate();
           parent.revalidate();
           parent.repaint();
-        }
-        else {
-          System.out.println("Why Edge");
         }
       }
     });
@@ -413,25 +452,39 @@ public GraphView(MainFrame mainFrame) {
     group.add(edgeSelection);
     group.add(nodeSelection);
 
+    
+    //adding minimize button
+    JButton hideButton = new JButton("Hide Information Panel");
+    hideButton.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			informationPanel.setVisible(false);
+			showPanel.setVisible(true);
+		}
+	});
+    
+ 
+    
+    
     ypos++;
     c.gridy = ypos;
     c.gridx = 1;
-    JPanel pickPanel = new JPanel(new FlowLayout());
+    basicOperations.add(Box.createVerticalStrut(betweenComps), c);
+    basicOperations.add(hideButton, c);
+    
+    ypos++;
+    c.gridy = ypos;
+    c.gridx = 1;
+    JPanel pickPanel = new JPanel(new BorderLayout());
     pickPanel.setBackground(bgColor);
-    pickPanel.add(pickMode);
-    pickPanel.add(edgeSelection);
-    pickPanel.add(nodeSelection);
+    pickPanel.add(pickMode, BorderLayout.LINE_START);
+    pickPanel.add(edgeSelection, BorderLayout.CENTER);
+    pickPanel.add(nodeSelection, BorderLayout.LINE_END);
 
     basicOperations.add(pickPanel, c);
 
     ypos++;
     c.gridy = ypos;
-    basicOperations.add(Box.createVerticalStrut(betweenComps), c);
 
-    JLabel lblVisDetails = new JLabel("Visualisation Details");
-    ypos++;
-    c.gridy = ypos;
-    basicOperations.add(lblVisDetails, c);
     ypos++;
     c.gridy = ypos;
     nodeDetails = new JCheckBox("Node Details");
@@ -457,13 +510,12 @@ public GraphView(MainFrame mainFrame) {
     });
     ypos++;
     c.gridy = ypos;
-    basicOperations.add(Box.createVerticalStrut(betweenComps), c);
+    
 
+    
+    JPanel spinPanel = new JPanel();
     JLabel lblDepthSpinner = new JLabel("Search Depth");
-    ypos++;
-    c.gridy = ypos;
-    basicOperations.add(lblDepthSpinner, c);
-
+    spinPanel.add(lblDepthSpinner, BorderLayout.WEST);
     int currentDepth = 1;
     SpinnerModel depthModel = new SpinnerNumberModel(currentDepth, //initial value
         1, //min
@@ -483,13 +535,14 @@ public GraphView(MainFrame mainFrame) {
 
       }
     });
+    
     ypos++;
     c.gridy = ypos;
-    basicOperations.add(depthSpinner, c);
-
+    spinPanel.add(depthSpinner, BorderLayout.EAST);
+    basicOperations.add(spinPanel, c);
+    
     ypos++;
     c.gridy = ypos;
-    basicOperations.add(Box.createVerticalStrut(betweenComps), c);
 
     collapseExpand = new JButton("Collapse/Expand Node");
     collapseExpand.setEnabled(false);
@@ -510,7 +563,8 @@ public GraphView(MainFrame mainFrame) {
     ypos++;
     c.gridy = ypos;
     basicOperations.add(collapseExpand, c);
-
+    basicOperations.add(Box.createVerticalStrut(betweenComps), c);
+    
     c.gridx = 0;
     c.gridheight = ypos;
     c.gridwidth = 1;
@@ -543,6 +597,10 @@ private JTable createNodeAttributTable() {
     nodeAttributesModel.addColumn("Type");
 
     tableNodeAttributes = new JTable(nodeAttributesModel);
+    tableNodeAttributes.getColumnModel().getColumn(0).setMaxWidth(100);
+    tableNodeAttributes.getColumnModel().getColumn(2).setMaxWidth(60);
+    tableNodeAttributes.getColumnModel().getColumn(3).setMaxWidth(100);
+    
     tableNodeAttributes.getModel().addTableModelListener(new TableModelListener() {
 
       @Override
@@ -567,18 +625,16 @@ private JTable createNodeAttributTable() {
             	{
 	            	MyNode node = (MyNode)selectedNode;
             		boolean res = node.updateAttribute(attributeName, data);
-	
-		              if (!res) {
-		                model.setValueAt(null, row, column);
+            		if (!res){ 
+            			model.setValueAt(null, row, column);
 		                JPanel errorPanel = new JPanel();
 		
 		                errorPanel.add(new JLabel("The value does not match the attribute data type"));
 		
 		                JOptionPane.showMessageDialog(null, errorPanel, "Ups something went wrong", JOptionPane.ERROR_MESSAGE);
-		              }
+            		} //else 
+            			//graph.updateGraph();
             	}
-              /*else
-            	  graph.updateGraph();*/
             }
           }
         }
@@ -612,6 +668,9 @@ private JTable createEdgeAttributTable() {
     edgeAttributesModel.addColumn("Type");
 
     tableEdgeAttributes = new JTable(edgeAttributesModel);
+    tableEdgeAttributes.getColumnModel().getColumn(0).setMaxWidth(100);
+    tableEdgeAttributes.getColumnModel().getColumn(2).setMaxWidth(60);
+    tableEdgeAttributes.getColumnModel().getColumn(3).setMaxWidth(100);
     tableEdgeAttributes.getModel().addTableModelListener(new TableModelListener() {
 
       @Override
@@ -909,6 +968,11 @@ private JTable createEdgeAttributTable() {
 	}
 	else
 		return 1;
+  }
+  
+  public MasterFilter getMasterFilter()
+  {
+	  return this.masterFilter;
   }
 
 }

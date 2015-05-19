@@ -4,6 +4,7 @@ package graph.listener;
 import graph.model.MyEdgeType;
 import graph.model.MyNodeType;
 import graph.operations.GraphViewContainer;
+import gui.graph.ImageImporter;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,8 +41,7 @@ import org.xml.sax.SAXException;
  */
 public class NodeIconConfigWriterReader {
 	
-	
-	private static final Icon ICON_DEFAULT = new ImageIcon("../images/1.png");
+
 	private static File CONFIG_FILE;
 	private static String ROOT_CONFIG = "config";
 	private static String NODE_ICONS = "nodeIcons";
@@ -72,6 +72,8 @@ public class NodeIconConfigWriterReader {
 	 */
 	public void setIcons(HashMap<MyNodeType,Icon> iconmapping)
 	{
+		writeNewConfig(iconmapping);
+		/*
 		if (!CONFIG_FILE.exists())
 			writeNewConfig(iconmapping);
 		else
@@ -86,6 +88,7 @@ public class NodeIconConfigWriterReader {
 			// call the update function
 			updateIcons(iconmapping);
 		}
+		*/
 	}
 	/**
 	 * Writes a new graph view to the XML file
@@ -145,7 +148,6 @@ public class NodeIconConfigWriterReader {
 
 		transformer.transform(source, result);
  
-		//System.out.println("File saved!");
  
 	  } catch (ParserConfigurationException pce) {
 		pce.printStackTrace();
@@ -203,8 +205,7 @@ public class NodeIconConfigWriterReader {
 			DOMSource source = new DOMSource(doc);
 			StreamResult result = new StreamResult(CONFIG_FILE);
 			transformer.transform(source, result);
-	 
-			//System.out.println("Done");
+
 	 
 		   } catch (ParserConfigurationException pce) {
 			pce.printStackTrace();
@@ -307,13 +308,15 @@ public class NodeIconConfigWriterReader {
 						
 						// get the String value of the MyNodeType
 						String nodeTypeValue = eElement.getChildNodes().item(0).getNodeValue();	
-						//System.out.println(nodeTypeValue);
+						
 						// Build a real MyNodeType from the String value of the xml
 						MyNodeType current = ModelBuilder.getNodeTypes().getValue(nodeTypeValue);
 						
-						// Get the MyNodeType Color
-						Icon c = new ImageIcon(eElement.getAttribute(ATTR_ICON));
-						
+						// Get the MyNodeType Icon
+						//Icon c = new ImageIcon(eElement.getAttribute(ATTR_ICON));
+						String fileaddr = eElement.getAttribute(ATTR_ICON);
+						ImageIcon c = ImageImporter.loadImageBySize(new File(fileaddr), ImageImporter.IMG_WIDTH, ImageImporter.IMG_HEIGHT);
+						c.setDescription(fileaddr);
 						res.put(current, c);
 					}
 				}

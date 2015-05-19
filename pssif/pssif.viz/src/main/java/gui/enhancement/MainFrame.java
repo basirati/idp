@@ -7,8 +7,6 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.Image;
-import java.awt.Toolkit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -20,7 +18,7 @@ import javax.swing.SwingConstants;
 import reqtool.bus.ReqToolReqistry;
 
 public class MainFrame {
-	
+	public static final String INSTALL_FOLDER = System.getProperty("user.dir");;
 	private JFrame frame;
 	
 	private MenuManager menuManager;
@@ -38,6 +36,8 @@ public class MainFrame {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		menuManager = new MenuManager(this);
 		fcommands = new FileCommands(this);
+		menuManager.update();
+		fcommands.update();
 		toolbarManager = new ToolbarManager();
 		
 		
@@ -61,7 +61,7 @@ public class MainFrame {
 		frame.setPreferredSize(new Dimension(width, height));
 		// create the Basic Menu Bar
 		frame.setJMenuBar(menuManager.createFileMenu());
-		JPanel allPanel = new ImagePanel("../images/back2.jpg");
+		JPanel allPanel = new ImagePanel(INSTALL_FOLDER + "//images//background.jpg");
 		allPanel.setSize(frame.getSize());
 		allPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		JLabel label = new JLabel("Start by importing a file");
@@ -77,7 +77,7 @@ public class MainFrame {
 		frame.setLocationRelativeTo(null);
 		
 		
-		ImageIcon icon = new ImageIcon("../images/back.jpg");
+		ImageIcon icon = new ImageIcon(INSTALL_FOLDER + "//images//icon3.png");
 		frame.setIconImage(icon.getImage());
 		frame.setVisible(true);
 	}

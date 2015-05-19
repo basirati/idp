@@ -31,6 +31,10 @@ public class FileCommands{
 		this.menuManager = mainFrame.getMenuManager();
 		this.mainFrame = mainFrame;
 	}
+	public void update()
+	{
+		this.menuManager = mainFrame.getMenuManager();
+	}
 	
 	private void setUp()
 	{
@@ -38,7 +42,7 @@ public class FileCommands{
 		matrixView = new MatrixView();
 		graphView = new GraphView(mainFrame);
 		// instance which manages all the filters
-		masterFilter = new MasterFilter(graphView);
+		masterFilter = graphView.getMasterFilter();
 		
 		int width = GraphicsEnvironment.getLocalGraphicsEnvironment()
 				.getDefaultScreenDevice().getDisplayMode().getWidth();

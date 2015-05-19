@@ -2,11 +2,13 @@ package gui.graph;
 
  
 import graph.model.MyNodeType;
-import gui.enhancement.ImagePanel;
+import gui.enhancement.MainFrame;
 
 import java.io.*;
+import java.net.URI;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -16,39 +18,39 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 @SuppressWarnings("serial")
 public class ImageImporter extends JPanel
                              implements ActionListener {
+	
+	public static final int IMG_WIDTH = 128;
+	public static final int IMG_HEIGHT = 128;
+	
     private JButton openButton;
     private JFileChooser fc;
     private File file ;
-    private ImagePanel imgPanel = new ImagePanel("");
+    private JLabel picLabel = new JLabel();
     private NodeIconPopup nsp;
     private MyNodeType currentNode;
+    private JPanel buttonPanel = new JPanel();
     
     public ImageImporter(NodeIconPopup nsp) {
-        super(new BorderLayout());
- 
+         
         this.nsp = nsp;
         //Create a file chooser
         fc = new JFileChooser();
  
-        //Uncomment one of the following lines to try a different
-        //file selection mode.  The first allows just directories
-        //to be selected (and, at least in the Java look and feel,
-        //shown).  The second allows both files and directories
-        //to be selected.  If you leave these lines commented out,
-        //then the default mode (FILES_ONLY) will be used.
-        //
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
  
-        //Create the open button.  We use the image from the JLF
-        //Graphics Repository (but we extracted it from the jar).
+        
+        setLayout(new BorderLayout());
         openButton = new JButton("Select an Image File...");
         openButton.addActionListener(this);
- 
+        
+        JButton remButton = new JButton("Remove Icon");
+        remButton.addActionListener(this);
  
         //For layout purposes, put the buttons in a separate panel
-        JPanel buttonPanel = new JPanel(); //use FlowLayout
+         //use FlowLayout
         buttonPanel.add(openButton);
- 
+        buttonPanel.add(remButton);
+       
         //Add the buttons and the log to this panel.
         add(buttonPanel, BorderLayout.PAGE_START);
    //     add(logScrollPane, BorderLayout.CENTER);
@@ -59,6 +61,11 @@ public class ImageImporter extends JPanel
     	  //Handle open button action.
         if (e.getSource() == openButton) {
         	handleShapeMapping();
+        } 
+        else 
+        {
+        	nsp.getIconMapper().remove(currentNode);
+        	this.wipeImage();
         }
 
     }
@@ -81,35 +88,63 @@ public class ImageImporter extends JPanel
             int returnVal = fc.showOpenDialog(this);
  
             if (returnVal == JFileChooser.APPROVE_OPTION) {
-                file = fc.getSelectedFile();
-                this.remove(imgPanel);
-                ImageIcon icon = new ImageIcon(file.getPath());
-                imgPanel = new ImagePanel(icon);
-                imgPanel.setSize(this.getSize());
-                nsp.getIconMapper().put(currentNode, icon);
-                this.add(imgPanel,BorderLayout.CENTER);
-                this.repaint();
+           		file = fc.getSelectedFile();
+           		if (picLabel != null)
+           			this.remove(picLabel);
+    			ImageIcon icon = loadImageBySize(file, IMG_WIDTH, IMG_HEIGHT);
+    			String basepath = MainFrame.INSTALL_FOLDER;
+    			icon.setDescription(file.getPath());
+               	nsp.getIconMapper().put(currentNode, icon);
+               	this.showImage(icon);
             } 
   
         
     }
     
+    public static ImageIcon loadImageBySize(File imgFile, int width, int height){
+    	ImageIcon icon = null;
+    	try{
+    		BufferedImage originalImage = ImageIO.read(imgFile);
+    		int type = originalImage.getType() == 0? BufferedImage.TYPE_INT_ARGB : originalImage.getType();     
+		
+    		BufferedImage resizedImage = new BufferedImage(width, height, type);
+    		Graphics2D g = resizedImage.createGraphics();
+    		g.drawImage(originalImage, 0, 0, width, height, null);
+    		g.dispose();
+	 
+    		icon = new ImageIcon(resizedImage);
+    	}
+        catch(Exception e)
+        {
+        	System.out.println("Cannot read the image from file.");
+        }
+		
+    	return icon;
+	}
+    
     public void showImage(Icon icon){
     	if (icon == null)
+    	{
+    		this.wipeImage();
     		return;
-    	this.remove(imgPanel);
-    	imgPanel = new ImagePanel(icon);
-        imgPanel.setSize(this.getSize());
-    	this.add(imgPanel);
+    	}
+    	if (picLabel != null)
+    		this.remove(picLabel);
+    	
+    	//icon.paintIcon(this, getGraphics(), (this.getWidth()-IMG_WIDTH)/2, 30);
+    	picLabel = new JLabel(icon);
+    	picLabel.setSize(this.getSize());
+    	this.add(picLabel, BorderLayout.CENTER);
         this.repaint();
     }
     public void wipeImage(){
-    	this.remove(imgPanel);
+    	if (picLabel != null)
+    		this.remove(picLabel);
         this.repaint();
     }
     
     /** Returns an ImageIcon, or null if the path was invalid. */
-    protected static ImageIcon createImageIcon(String path) {
+    protected ImageIcon createImageIcon(String path) {
         java.net.URL imgURL = ImageImporter.class.getResource(path);
         if (imgURL != null) {
             return new ImageIcon(imgURL);

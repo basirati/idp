@@ -3,7 +3,7 @@ package gui.graph;
 import graph.model.MyNodeType;
 import gui.GraphView;
 
-import java.awt.GridLayout;
+import java.awt.BorderLayout;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -50,7 +50,7 @@ public class NodeIconPopup extends MyPopup{
 	 */
 	private JPanel createPanel()
 	{
-		JPanel bannerPanel = new JPanel(new GridLayout());
+		JPanel bannerPanel = new JPanel(new BorderLayout());
 		
 		MyNodeType[] nodetypes = ModelBuilder.getNodeTypes().getAllNodeTypesArray();
 		
@@ -63,9 +63,10 @@ public class NodeIconPopup extends MyPopup{
 	    nodeTypeList.addListSelectionListener(lsh);
 	     
 	    JScrollPane sp = new JScrollPane( nodeTypeList ); 
-	    bannerPanel.add(sp);
+	    bannerPanel.add(sp, BorderLayout.WEST);
 	    
-	    bannerPanel.add(ii);
+	    bannerPanel.add(ii, BorderLayout.EAST);
+	    bannerPanel.setSize(100, 400);
 	    return bannerPanel;
 	}
 	
@@ -83,6 +84,7 @@ public class NodeIconPopup extends MyPopup{
 		panel = createPanel();
 		
 		int dialogResult = JOptionPane.showConfirmDialog(null, panel, "Choose Nodes Shapes", JOptionPane.DEFAULT_OPTION);
+		
 		
 		evalDialog(dialogResult);
 	}

@@ -34,7 +34,7 @@ public class MetamodelImport {
 			String path = System.getProperty("user.dir");
 			// FileReader reader = new FileReader(path.substring(0,
 			// path.length()-9) + "Meta-Modell.xml");
-			FileReader reader = new FileReader("/Users/apple/Desktop/Meta-Modell.xml");
+			FileReader reader = new FileReader(path + "//Meta-Modell.xml");
 			InputSource inputSource = new InputSource(reader);
 
 			// XMLConentHandler is handed over

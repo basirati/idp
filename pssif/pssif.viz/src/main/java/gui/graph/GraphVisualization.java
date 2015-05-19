@@ -3,20 +3,17 @@ package gui.graph;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JMenu;
-
-import model.ModelBuilder;
 
 import org.apache.commons.collections15.Transformer;
 
@@ -32,7 +29,6 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.RenderContext;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.AbstractModalGraphMouse;
-import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse.Mode;
 import edu.uci.ics.jung.visualization.layout.LayoutTransition;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
@@ -66,6 +62,7 @@ public class GraphVisualization
 	public static final String ISOMLayout  ="ISOMLayout";
 	public static final String CircleLayout  ="CircleLayout";
 	public static final String TestLayout  ="TestLayout";
+
 
 	private Graph<IMyNode, MyEdge> g;
 	private AbstractModalGraphMouse gm;
@@ -114,6 +111,8 @@ public class GraphVisualization
 
 		//new settings here
 		this.vv = new EnhancedVisualizationViewer(this.layout);
+		EnhancedVisualizationViewer evv = (EnhancedVisualizationViewer) this.vv; 
+		evv.setGraphVisualization(this);
 		vv.getRenderer().setVertexRenderer(new EnhancedRenderer<IMyNode,MyEdge>());
 		
 		if (d != null) 
@@ -125,6 +124,15 @@ public class GraphVisualization
 			this.vv.setPreferredSize(new Dimension(i, i));
 		}
 
+		//set the first node in the center of screen
+		if (this.layout != null && this.g.getVertexCount() < 2)
+			this.layout.setInitializer(new Transformer<IMyNode, Point2D>() {
+				public Point2D transform(IMyNode node) {
+					Point2D p = vv.getCenter();
+					return p;
+					}
+				});
+		
 
 		this.vsh = new VertexStrokeHighlight<IMyNode,MyEdge>(this.g, this.vv.getPickedVertexState()); 
 		this.vsh.setHighlight(true, 1, new LinkedList<MyEdgeType>());
@@ -132,7 +140,8 @@ public class GraphVisualization
 		createNodeTransformers();
 		createEdgeTransformers();
 
-		this.gm = new DefaultModalGraphMouse<MyNode, MyEdge>();
+		this.gm = new EnhancedModalGraphMouse<MyNode, MyEdge>();
+		
 		this.vv.setGraphMouse(this.gm);   
 		this.gm.add(new MyPopupGraphMousePlugin(this));
 	}
@@ -320,6 +329,12 @@ public class GraphVisualization
 		gm.setMode(m);
 	}
 
+	public Mode getAbstractModalGraphMode()
+	{
+		@SuppressWarnings("unchecked")
+		EnhancedModalGraphMouse<MyNode, MyEdge> temp = (EnhancedModalGraphMouse<MyNode, MyEdge>) this.gm;
+		return temp.getMode();
+	}
 
 
 
@@ -546,7 +561,8 @@ public class GraphVisualization
 	
 	public HashMap<MyNodeType, Icon> getNodeIconMapping()
 	{
-		return this.nodeIconConfigWriterReader.readIcons();
+		//return this.nodeIconConfigWriterReader.readIcons();
+		return this.nodeIconMapping;
 	}
 
 	/**
@@ -627,7 +643,7 @@ public class GraphVisualization
 	}
 
 	public void setNodeIconMapping(HashMap<MyNodeType, Icon> iconMapper) {
-		this.nodeIconMapping.putAll(iconMapper);
+		this.nodeIconMapping = iconMapper;
 		this.nodeIconConfigWriterReader.setIcons(nodeIconMapping);
 
 		updateGraph();

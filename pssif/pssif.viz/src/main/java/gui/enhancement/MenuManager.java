@@ -52,8 +52,13 @@ public class MenuManager {
 	{
 		this.mainFrame = mainFrame;
 		this.frame = this.mainFrame.getFrame();
-		fcommands = new FileCommands(mainFrame);
+		fcommands = this.mainFrame.getFileCommands();
 	
+	}
+	public void update()
+	{
+		this.frame = this.mainFrame.getFrame();
+		fcommands = this.mainFrame.getFileCommands();
 	}
 	
 	public void setValues(GraphView graphView, MatrixView matrixView,MasterFilter masterFilter)
@@ -229,7 +234,7 @@ public class MenuManager {
 
 		menuBar.getMenu(0).add(exportDB);
 
-		colorNodes = new JMenuItem("Choose Node colors");
+		colorNodes = new JMenuItem("Choose Node Color");
 		colorNodes.addActionListener(new ActionListener() {
 
 			@Override
@@ -242,7 +247,7 @@ public class MenuManager {
 
 		menuBar.getMenu(0).add(colorNodes);
 		
-		shapeNodes = new JMenuItem("Choose Shape of Nodes");
+		shapeNodes = new JMenuItem("Choose Node Shape");
 		shapeNodes.addActionListener(new ActionListener() {
 
 			@Override
